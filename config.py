@@ -4,7 +4,9 @@ Configuration settings for the SWIFT processing system
 
 import os
 from typing import Dict, Any
+from dotenv import load_dotenv
 
+load_dotenv() # Load environment variables from .env file
 
 class Config:
     """Configuration class for the SWIFT processing system"""
@@ -17,8 +19,10 @@ class Config:
     MAX_WORKERS = 8
     BATCH_SIZE = 50
     
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
     
-    
+
     @classmethod
     def get_all_settings(cls) -> Dict[str, Any]:
         """Get all configuration settings as a dictionary"""

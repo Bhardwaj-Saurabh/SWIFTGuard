@@ -24,7 +24,8 @@ class LLMService:
         # Initialize OpenAI client
         # the newest OpenAI model is "gpt-4o" which was released May 13, 2024.
         # do not change this unless explicitly requested by the user
-        self.client = OpenAI(api_key=self.config.OPENAI_API_KEY)
+        self.client = OpenAI(api_key=self.config.OPENAI_API_KEY, 
+                             base_url="https://openai.vocareum.com/v1",)
         self.model = self.config.OPENAI_MODEL
         
         self.logger.info(f"LLM Service initialized with model: {self.model}")
