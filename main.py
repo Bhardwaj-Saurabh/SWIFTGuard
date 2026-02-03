@@ -125,11 +125,39 @@ class SWIFTProcessingSystem:
         # Option 3 - Specific message type:
         # clean_messages = [msg for msg in messages if msg.get('message_type') == 'MT103']
 
-        # Current implementation (Set 1) - Non-fraudulent messages
+        # REPORT SET 1: Non-fraudulent messages
+        print("\nGenerating Report Set 1: Non-Fraudulent Messages")
         clean_messages = [msg for msg in messages if msg.get('fraud_status') != "FRAUDULENT"]
+        print(f"Filtered {len(clean_messages)} non-fraudulent messages for processing")
 
         # Process with orchestrator
         self.orchestrator_worker.process_with_orchestrator(clean_messages)
+
+        # REPORT SET 2: High-Value Transactions (> $10,000)
+        print("\n" + "=" * 60)
+        print("GENERATING REPORT SET 2: HIGH-VALUE TRANSACTIONS")
+        print("=" * 60)
+
+        high_value_messages = []
+        for msg in messages:
+            try:
+                # Extract amount value from "amount currency" format
+                amount_str = msg.get('amount', '0')
+                amount_value = float(amount_str.split()[0]) if ' ' in amount_str else float(amount_str)
+
+                # Filter for transactions > $10,000
+                if amount_value > 10000:
+                    high_value_messages.append(msg)
+            except (ValueError, IndexError, AttributeError):
+                # Skip messages with invalid amount format
+                pass
+
+        if high_value_messages:
+            print(f"Filtered {len(high_value_messages)} high-value transactions for processing")
+            self.orchestrator_worker.process_with_orchestrator(high_value_messages)
+        else:
+            print("No high-value transactions found in this batch.")
+            print("Note: High-value threshold is $10,000")
         
     
     def run(self):
