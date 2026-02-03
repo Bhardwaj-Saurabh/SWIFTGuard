@@ -20,7 +20,10 @@ class OrchestratorWorkerPattern:
     def __init__(self):
         """Initialize the orchestrator-worker pattern."""
         self.config = Config()
-        self.client = OpenAI()
+        self.client = OpenAI(
+            base_url="https://openai.vocareum.com/v1",
+            api_key=self.config.OPENAI_API_KEY
+        )
         self.model = "gpt-4o"
 
     # TODO 15: Create orchestrator (15 points)
@@ -65,10 +68,13 @@ class OrchestratorWorkerPattern:
 
         def __init__(self):
             """Initialize the Orchestrator."""
-            # Initialize OpenAI client
-            self.client = OpenAI()
-            self.model = "gpt-4o"
+            # Initialize OpenAI client with correct base URL
             self.config = Config()
+            self.client = OpenAI(
+                base_url="https://openai.vocareum.com/v1",
+                api_key=self.config.OPENAI_API_KEY
+            )
+            self.model = "gpt-4o"
 
         def analyze_and_create_tasks(self, messages: List[Dict]) -> Dict:
             """
@@ -171,10 +177,13 @@ class OrchestratorWorkerPattern:
 
         def __init__(self):
             """Initialize the Generic Agent."""
-            # Initialize OpenAI client
-            self.client = OpenAI()
-            self.model = "gpt-4o"
+            # Initialize OpenAI client with correct base URL
             self.config = Config()
+            self.client = OpenAI(
+                base_url="https://openai.vocareum.com/v1",
+                api_key=self.config.OPENAI_API_KEY
+            )
+            self.model = "gpt-4o"
 
         def execute_task(self, task: Dict) -> Dict:
             """

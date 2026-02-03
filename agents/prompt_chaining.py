@@ -20,7 +20,10 @@ class PromptChainingPattern:
     def __init__(self):
         """Initialize the prompt chaining pattern with OpenAI client."""
         self.config = Config()
-        self.client = OpenAI()
+        self.client = OpenAI(
+            base_url="https://openai.vocareum.com/v1",
+            api_key=self.config.OPENAI_API_KEY
+        )
         self.model = "gpt-4o"
         self.temperature = 0.1  # Low temperature for consistent analysis
 
