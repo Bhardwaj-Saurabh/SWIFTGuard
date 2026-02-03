@@ -144,49 +144,29 @@ class SWIFTProcessingSystem:
             messages = self.generate_swift_messages()
             print(f"Generated {len(messages)} SWIFT messages")
 
-            # TODO 1: Call evaluator optimizer (5 points)
+            # TODO 1: Call evaluator optimizer (5 points) - COMPLETED
             # INSTRUCTIONS:
             # Call the process_with_evaluator_optimizer method and store the result
             # The method takes the messages list as input and returns validated messages
-            #
-            # EXAMPLE:
-            # validated_messages = self.process_with_evaluator_optimizer(messages)
-            #
-            # YOUR CODE HERE (remove the pass statement):
-            pass
+            validated_messages = self.process_with_evaluator_optimizer(messages)
 
-            # TODO 2: Call parallelization process (5 points)
+            # TODO 2: Call parallelization process (5 points) - COMPLETED
             # INSTRUCTIONS:
             # Call process_with_parallelization with the results from TODO 1
             # This will run fraud detection agents in parallel
-            #
-            # EXAMPLE:
-            # processed_messages = self.process_with_parallelization(validated_messages)
-            #
-            # YOUR CODE HERE (remove the pass statement):
-            pass
+            processed_messages = self.process_with_parallelization(validated_messages)
 
-            # TODO 3: Call prompt chaining (5 points)
+            # TODO 3: Call prompt chaining (5 points) - COMPLETED
             # INSTRUCTIONS:
             # Call process_with_prompt_chaining with the results from TODO 2
             # This will run the chain of specialized fraud analysis agents
-            #
-            # EXAMPLE:
-            # chain_results = self.process_with_prompt_chaining(processed_messages)
-            #
-            # YOUR CODE HERE (remove the pass statement):
-            pass
+            chain_results = self.process_with_prompt_chaining(processed_messages)
 
-            # TODO 4: Pass results to orchestrator (5 points)
+            # TODO 4: Pass results to orchestrator (5 points) - COMPLETED
             # INSTRUCTIONS:
             # Call process_with_orchestrator_worker with the messages from TODO 2
             # (We use processed_messages, not chain_results, as the orchestrator needs the messages)
-            #
-            # EXAMPLE:
-            # self.process_with_orchestrator_worker(processed_messages)
-            #
-            # YOUR CODE HERE (remove the pass statement):
-            pass
+            self.process_with_orchestrator_worker(processed_messages)
 
             print("\n" + "=" * 60)
             print("PROCESSING COMPLETE")
