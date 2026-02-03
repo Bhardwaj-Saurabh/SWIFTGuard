@@ -257,21 +257,19 @@ class PromptChainingPattern:
         initial_results = self._call_llm(system_prompt, user_prompt)
         chain_results['initial_screening'] = initial_results
 
-        # TODO 13: Implement Step 2 (7 points)
+        # TODO 13: Implement Step 2 (7 points) - COMPLETED
         # INSTRUCTIONS:
         # 1. Call the technical analyst agent
         # 2. Use _create_technical_analyst_prompt to create prompts
         # 3. Pass messages and initial_results as parameters
         # 4. Use _call_llm to get the response
         # 5. Store the results in chain_results['technical_analysis']
-        #
-        # EXAMPLE:
-        # print("Step 2: Technical Analyst reviewing messages...")
-        # system_prompt, user_prompt = self._create_technical_analyst_prompt(messages, initial_results)
-        # technical_results = self._call_llm(system_prompt, user_prompt)
-        # chain_results['technical_analysis'] = technical_results
 
-        # YOUR CODE HERE - Implement Step 2: Technical Analyst
+        # Step 2: Technical Analyst
+        print("Step 2: Technical Analyst reviewing messages...")
+        system_prompt, user_prompt = self._create_technical_analyst_prompt(messages, initial_results)
+        technical_results = self._call_llm(system_prompt, user_prompt)
+        chain_results['technical_analysis'] = technical_results
 
         # Step 3: Risk Assessor (Provided as example)
         print("Step 3: Risk Assessor evaluating patterns...")
@@ -289,21 +287,19 @@ class PromptChainingPattern:
         risk_results = self._call_llm(risk_prompt_system, risk_prompt_user)
         chain_results['risk_assessment'] = risk_results
 
-        # TODO 14: Implement Step 4 (8 points)
+        # TODO 14: Implement Step 4 (8 points) - COMPLETED
         # INSTRUCTIONS:
         # 1. Call the compliance officer agent
         # 2. Use _create_compliance_officer_prompt to create prompts
         # 3. Pass messages and chain_results (which now has 3 stages of analysis)
         # 4. Use _call_llm to get the response
         # 5. Store the results in chain_results['compliance_review']
-        #
-        # EXAMPLE:
-        # print("Step 4: Compliance Officer reviewing for regulatory issues...")
-        # system_prompt, user_prompt = self._create_compliance_officer_prompt(messages, chain_results)
-        # compliance_results = self._call_llm(system_prompt, user_prompt)
-        # chain_results['compliance_review'] = compliance_results
 
-        # YOUR CODE HERE - Implement Step 4: Compliance Officer
+        # Step 4: Compliance Officer
+        print("Step 4: Compliance Officer reviewing for regulatory issues...")
+        system_prompt, user_prompt = self._create_compliance_officer_prompt(messages, chain_results)
+        compliance_results = self._call_llm(system_prompt, user_prompt)
+        chain_results['compliance_review'] = compliance_results
 
         # Step 5: Final Reviewer (Provided)
         print("Step 5: Final Reviewer making decisions...")

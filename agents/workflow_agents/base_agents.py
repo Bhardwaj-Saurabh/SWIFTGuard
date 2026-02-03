@@ -5,51 +5,39 @@ This module contains the base classes that all agents inherit from.
 You will implement the BaseAgent abstract class and the SwiftCorrectionAgent.
 """
 
-# TODO 6: Create BaseAgent abstract class (10 points)
-# INSTRUCTIONS:
-# 1. Import ABC and abstractmethod from the abc module
-# 2. Create a BaseAgent class that inherits from ABC
-# 3. The class should have:
-#    - An __init__ method that initializes self.config and self.llm_service
-#    - An abstract method create_prompt(self, data) that returns a string
-#    - A concrete method respond(self, prompt) that calls the LLM service
-#
-# HINT: Look at how the solution implements agent classes in the lessons
-# EXAMPLE STRUCTURE:
-"""
+# TODO 6: Create BaseAgent abstract class (10 points) - COMPLETED
 from abc import ABC, abstractmethod
 from config import Config
 from services.llm_service import LLMService
 
 class BaseAgent(ABC):
+    """Base abstract class for all agents"""
+
     def __init__(self):
+        """Initialize the base agent with config and LLM service"""
         self.config = Config()
-        self.llm_service = # Initialize LLMService here
+        self.llm_service = LLMService()
 
     @abstractmethod
     def create_prompt(self, data):
-        '''Each agent must implement your own prompt creation'''
+        """Each agent must implement their own prompt creation"""
         pass
 
     def respond(self, prompt: str):
-        '''Common method to get LLM response'''
-        # Use self.llm_service to get response
-        pass
-"""
-
-# YOUR CODE HERE - Implement BaseAgent class
+        """Common method to get LLM response"""
+        return self.llm_service.get_swift_correction(prompt)
 
 
 class SwiftCorrectionAgent:
     """Agent for correcting SWIFT messages based on validation errors."""
 
     def __init__(self):
-        # TODO 7: Define LLMService (5 points)
+        # TODO 7: Define LLMService (5 points) - COMPLETED
         # INSTRUCTIONS: Initialize self.llm_service with an instance of LLMService
         # HINT: from services.llm_service import LLMService
         # Then: self.llm_service = LLMService()
-
-        pass  # Remove this pass after adding your code
+        from services.llm_service import LLMService
+        self.llm_service = LLMService()
 
     def create_prompt(self, message, errors):
         """
@@ -102,15 +90,15 @@ class SwiftCorrectionAgent:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                # TODO 8: Set response format (3 points)
+                # TODO 8: Set response format (3 points) - COMPLETED
                 # INSTRUCTIONS: Add the response_format parameter to ensure JSON output
                 # The format should be: response_format={"type": "json_object"}
                 # This ensures the LLM returns valid JSON that we can parse
-
+                response_format={"type": "json_object"},
                 temperature=0.1
             )
 
-            # TODO 9: Parse response result (2 points)
+            # TODO 9: Parse response result (2 points) - COMPLETED
             # INSTRUCTIONS: Extract and parse the JSON content from the response
             # HINT: The response content is in response.choices[0].message.content
             # You'll need to:
@@ -118,12 +106,9 @@ class SwiftCorrectionAgent:
             # 2. Use json.loads() to parse it into a Python dictionary
             # 3. Return the parsed result
 
-            # Example:
-            # content = response.choices[0].message.content
-            # result = json.loads(content)
-            # return result
-
-            return {}  # Replace with parsed response
+            content = response.choices[0].message.content
+            result = json.loads(content)
+            return result
 
         except Exception as e:
             print(f"Error in SwiftCorrectionAgent: {e}")
@@ -276,4 +261,68 @@ class FraudAggAgent:
             "confidence": round(avg_risk * 100, 2),
             "total_risk_score": round(avg_risk, 3),
             "aggregated_reasons": all_reasons
+        }
+
+
+class GeographicRiskAgent:
+    """Agent for detecting fraud based on geographic risk factors."""
+
+    def __init__(self):
+        # High-risk country codes based on common financial crime patterns
+        self.high_risk_countries = ['IR', 'KP', 'SY', 'SD', 'CU', 'BY', 'MM', 'VE', 'ZW']
+        self.medium_risk_countries = ['AF', 'IQ', 'LB', 'LY', 'SO', 'YE', 'PK']
+        self.offshore_tax_havens = ['KY', 'BM', 'VG', 'PA', 'LI', 'MC']
+
+    def analyze(self, message):
+        """
+        Analyze a SWIFT message for geographic risk indicators.
+
+        Args:
+            message: The SWIFT message to analyze
+
+        Returns:
+            dict: Fraud analysis results with risk score and reasons
+        """
+        risk_score = 0
+        fraud_reasons = []
+
+        # Extract country codes from BIC codes (characters 5-6)
+        sender_bic = message.get('sender_bic', '')
+        receiver_bic = message.get('receiver_bic', '')
+
+        sender_country = sender_bic[4:6] if len(sender_bic) >= 6 else ''
+        receiver_country = receiver_bic[4:6] if len(receiver_bic) >= 6 else ''
+
+        # Check for high-risk countries
+        if sender_country in self.high_risk_countries:
+            risk_score += 0.7
+            fraud_reasons.append(f"Transaction from high-risk country: {sender_country}")
+
+        if receiver_country in self.high_risk_countries:
+            risk_score += 0.7
+            fraud_reasons.append(f"Transaction to high-risk country: {receiver_country}")
+
+        # Check for medium-risk countries
+        if sender_country in self.medium_risk_countries:
+            risk_score += 0.4
+            fraud_reasons.append(f"Transaction from medium-risk country: {sender_country}")
+
+        if receiver_country in self.medium_risk_countries:
+            risk_score += 0.4
+            fraud_reasons.append(f"Transaction to medium-risk country: {receiver_country}")
+
+        # Check for offshore tax havens
+        if sender_country in self.offshore_tax_havens or receiver_country in self.offshore_tax_havens:
+            risk_score += 0.3
+            fraud_reasons.append(f"Transaction involves offshore tax haven")
+
+        # Check for unusual country combinations (e.g., both parties from same high-risk region)
+        if sender_country == receiver_country and sender_country in self.high_risk_countries:
+            risk_score += 0.2
+            fraud_reasons.append("Domestic transaction in high-risk country")
+
+        return {
+            "agent": "GeographicRiskAgent",
+            "risk_score": min(risk_score, 1.0),
+            "fraud_reasons": fraud_reasons
         }

@@ -11,7 +11,8 @@ import time
 from agents.workflow_agents.base_agents import (
     FraudAmountDetectionAgent,
     FraudPatternDetectionAgent,
-    FraudAggAgent
+    FraudAggAgent,
+    GeographicRiskAgent
 )
 
 
@@ -31,7 +32,7 @@ class ParallelizationPattern:
         self.max_workers = max_workers
 
         # Initialize fraud detection agents
-        # TODO 10: Create third agent (10 points)
+        # TODO 10: Create third agent (10 points) - COMPLETED
         # INSTRUCTIONS:
         # 1. Add a third fraud detection agent to this list
         # 2. You can create a new agent class or use one of the existing ones
@@ -54,7 +55,7 @@ class ParallelizationPattern:
         self.list_of_agents = [
             FraudAmountDetectionAgent(),
             FraudPatternDetectionAgent(),
-            # Add your third agent here
+            GeographicRiskAgent()  # Third agent for geographic risk detection
         ]
 
     def _process_message(self, message: Dict, agent: Any) -> Dict:
@@ -95,7 +96,7 @@ class ParallelizationPattern:
         print(f"Processing {len(messages)} messages with {len(self.list_of_agents)} agents in parallel...")
         start_time = time.time()
 
-        # TODO 11: Add aggregation agent (5 points)
+        # TODO 11: Add aggregation agent (5 points) - COMPLETED
         # INSTRUCTIONS:
         # 1. Create an instance of FraudAggAgent to aggregate results
         # 2. This agent will combine results from all fraud detection agents
@@ -104,8 +105,8 @@ class ParallelizationPattern:
         # EXAMPLE:
         # aggregator = FraudAggAgent()
 
-        # YOUR CODE HERE - Initialize the aggregator
-        aggregator = None  # Replace with FraudAggAgent instance
+        # Initialize the aggregator
+        aggregator = FraudAggAgent()
 
         # Process messages in parallel
         processed_messages = []
@@ -138,7 +139,7 @@ class ParallelizationPattern:
                     except Exception as e:
                         print(f"Error getting result for message {msg_id}: {e}")
 
-                # TODO 12: Mark messages as fraudulent (5 points)
+                # TODO 12: Mark messages as fraudulent (5 points) - COMPLETED
                 # INSTRUCTIONS:
                 # 1. Use the aggregator to combine results from all agents
                 # 2. Call aggregator.aggregate_results(agent_results)
@@ -147,21 +148,19 @@ class ParallelizationPattern:
                 #    - Set message['fraud_status'] to "FRAUDULENT" or "CLEAN"
                 #    - Set message['fraud_score'] to the confidence score
                 #    - Set message['fraud_reasons'] to the aggregated reasons
-                #
-                # EXAMPLE:
-                # if aggregator:
-                #     aggregated = aggregator.aggregate_results(agent_results)
-                #     message['fraud_status'] = "FRAUDULENT" if aggregated['is_fraudulent'] else "CLEAN"
-                #     message['fraud_score'] = aggregated['confidence']
-                #     message['fraud_reasons'] = aggregated['aggregated_reasons']
-                # else:
-                #     message['fraud_status'] = "PENDING"
-                #     message['fraud_score'] = 0
-                #     message['fraud_reasons'] = []
 
-                # YOUR CODE HERE - Aggregate results and mark messages
+                # Aggregate results and mark messages
+                if aggregator:
+                    aggregated = aggregator.aggregate_results(agent_results)
+                    message['fraud_status'] = "FRAUDULENT" if aggregated['is_fraudulent'] else "CLEAN"
+                    message['fraud_score'] = aggregated['confidence']
+                    message['fraud_reasons'] = aggregated['aggregated_reasons']
+                else:
+                    message['fraud_status'] = "PENDING"
+                    message['fraud_score'] = 0
+                    message['fraud_reasons'] = []
 
-                # For now, just store the raw results (remove after implementing TODO 12)
+                # Store the raw results for detailed analysis
                 message['fraud_analysis'] = agent_results
 
                 processed_messages.append(message)

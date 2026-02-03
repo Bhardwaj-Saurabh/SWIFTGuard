@@ -66,8 +66,9 @@ class OrchestratorWorkerPattern:
         def __init__(self):
             """Initialize the Orchestrator."""
             # Initialize OpenAI client
-            # Set up any configuration needed
-            pass
+            self.client = OpenAI()
+            self.model = "gpt-4o"
+            self.config = Config()
 
         def analyze_and_create_tasks(self, messages: List[Dict]) -> Dict:
             """
@@ -138,11 +139,27 @@ class OrchestratorWorkerPattern:
                 ]
             }}"""
 
-            # TODO: Call the LLM and return the response
-            # Use self.client.chat.completions.create()
-            # Don't forget response_format={"type": "json_object"}
+            # Call the LLM and return the response
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.1
+                )
 
-            return {}  # Replace with actual implementation
+                result = json.loads(response.choices[0].message.content)
+                return result
+            except Exception as e:
+                print(f"Error in Orchestrator: {e}")
+                return {
+                    "analysis": "Error occurred during analysis",
+                    "task_count": 0,
+                    "tasks": []
+                }
 
     class GenericAgent:
         """
@@ -155,8 +172,9 @@ class OrchestratorWorkerPattern:
         def __init__(self):
             """Initialize the Generic Agent."""
             # Initialize OpenAI client
-            # Set up any configuration needed
-            pass
+            self.client = OpenAI()
+            self.model = "gpt-4o"
+            self.config = Config()
 
         def execute_task(self, task: Dict) -> Dict:
             """
@@ -202,14 +220,35 @@ class OrchestratorWorkerPattern:
 
             Return your results in JSON format."""
 
-            # TODO: Call the LLM and return the response
-            # Use appropriate error handling
+            # Call the LLM and return the response with error handling
+            try:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ],
+                    response_format={"type": "json_object"},
+                    temperature=0.1
+                )
 
-            return {
-                "task_id": task.get('task_id'),
-                "status": "completed",
-                "results": "Task execution results here"
-            }
+                results = json.loads(response.choices[0].message.content)
+
+                return {
+                    "task_id": task.get('task_id'),
+                    "task_type": task_type,
+                    "status": "completed",
+                    "results": results
+                }
+            except Exception as e:
+                print(f"Error executing task {task.get('task_id')}: {e}")
+                return {
+                    "task_id": task.get('task_id'),
+                    "task_type": task_type,
+                    "status": "failed",
+                    "error": str(e),
+                    "results": {}
+                }
 
     # YOUR CODE ENDS HERE
 
@@ -236,8 +275,6 @@ class OrchestratorWorkerPattern:
         print("ORCHESTRATOR-WORKER PATTERN PROCESSING")
         print("=" * 60)
 
-        # Example structure (replace with your implementation):
-        """
         # Step 1: Create orchestrator
         orchestrator = self.Orchestrator()
 
@@ -255,23 +292,37 @@ class OrchestratorWorkerPattern:
         results = []
         tasks = orchestrator_response.get('tasks', [])
 
-        for task in tasks:
-            print(f"Executing task: {task.get('task_id')} - {task.get('description')}")
+        print(f"\nExecuting {len(tasks)} tasks...")
+        for i, task in enumerate(tasks, 1):
+            print(f"\n[{i}/{len(tasks)}] Executing task: {task.get('task_id')} - {task.get('description')}")
             result = agent.execute_task(task)
             results.append(result)
-            print(f"Task {task.get('task_id')} completed")
+            status = result.get('status', 'unknown')
+            print(f"    Status: {status.upper()}")
 
-        # Step 5: Return results
+        # Step 5: Print summary
+        print(f"\n{'=' * 60}")
+        print("ORCHESTRATOR-WORKER SUMMARY")
+        print(f"{'=' * 60}")
+        print(f"Messages processed: {len(messages)}")
+        print(f"Tasks created: {len(tasks)}")
+        completed = sum(1 for r in results if r.get('status') == 'completed')
+        failed = sum(1 for r in results if r.get('status') == 'failed')
+        print(f"Tasks completed: {completed}")
+        print(f"Tasks failed: {failed}")
+
+        # Step 6: Return results
         return {
             'orchestrator_analysis': orchestrator_response,
             'task_results': results,
-            'summary': f"Processed {len(tasks)} tasks for {len(messages)} messages"
+            'summary': f"Processed {len(tasks)} tasks for {len(messages)} messages",
+            'stats': {
+                'total_messages': len(messages),
+                'total_tasks': len(tasks),
+                'completed_tasks': completed,
+                'failed_tasks': failed
+            }
         }
-        """
-
-        # YOUR IMPLEMENTATION HERE
-        # Remove the pass statement and implement the method
-        pass
 
     def test_orchestrator(self):
         """
