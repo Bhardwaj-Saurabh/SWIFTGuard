@@ -51,18 +51,35 @@ class SwiftCorrectionAgent:
             str: The formatted prompt for the LLM
         """
         system_prompt = """You are a SWIFT message correction expert.
-        Fix the validation errors while maintaining the business intent.
-        Return the corrected message in JSON format."""
+Fix the validation errors while maintaining the business intent.
+
+SWIFT STANDARDS YOU MUST FOLLOW:
+- Valid message types: MT103, MT202
+- Valid currencies: USD, EUR, GBP, JPY, CHF ONLY
+- Maximum reference length: 16 characters
+- Amount range: 0.01 to 999999999.99
+- BIC format: 8 or 11 alphanumeric characters
+
+CORRECTION RULES:
+1. If currency is invalid (e.g., CAD, SGD, AUD, HKD), replace it with USD
+2. If reference is too long, truncate it to 16 characters
+3. If amount is too large, set it to 999999999.99
+4. If amount is too small, set it to 0.01
+5. If BIC is invalid, keep the original but try to fix minor formatting issues
+6. If message type is invalid, use MT103
+
+Return the corrected message in JSON format with ALL original fields preserved."""
 
         user_prompt = f"""
-        Original SWIFT Message:
-        {message}
+Original SWIFT Message:
+{message}
 
-        Validation Errors to Fix:
-        {errors}
+Validation Errors to Fix:
+{errors}
 
-        Please correct these errors and return the complete corrected message in JSON format.
-        """
+Please correct these errors following the SWIFT standards above and return the complete corrected message in JSON format.
+Ensure you include ALL fields from the original message, even if they don't have errors.
+"""
 
         return system_prompt, user_prompt
 
@@ -207,7 +224,8 @@ class FraudPatternDetectionAgent:
             fraud_reasons.append("Same sender and receiver BIC")
 
         # Check remittance info for suspicious keywords
-        remittance = message.get('remittance_info', '').lower()
+        remittance = message.get('remittance_info', '') or ''  # Handle None values
+        remittance = remittance.lower()
         for keyword in self.suspicious_keywords:
             if keyword in remittance:
                 risk_score += 0.2

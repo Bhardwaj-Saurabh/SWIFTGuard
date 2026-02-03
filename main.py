@@ -147,6 +147,18 @@ class SWIFTProcessingSystem:
             # Convert Pydantic models to dictionaries for agent processing
             messages = [msg.model_dump() if hasattr(msg, 'model_dump') else msg.dict() for msg in messages]
 
+            # Combine amount and currency fields as expected by evaluator
+            # The evaluator expects: "51317.30 CHF" but generator creates separate fields
+            for msg in messages:
+                if 'amount' in msg and 'currency' in msg:
+                    msg['amount'] = f"{msg['amount']} {msg['currency']}"
+
+                # Convert datetime objects to strings for JSON serialization
+                if 'created_at' in msg and hasattr(msg['created_at'], 'isoformat'):
+                    msg['created_at'] = msg['created_at'].isoformat()
+                if 'processed_at' in msg and msg['processed_at'] and hasattr(msg['processed_at'], 'isoformat'):
+                    msg['processed_at'] = msg['processed_at'].isoformat()
+
             # TODO 1: Call evaluator optimizer (5 points) - COMPLETED
             # INSTRUCTIONS:
             # Call the process_with_evaluator_optimizer method and store the result
