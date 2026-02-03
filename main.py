@@ -144,6 +144,9 @@ class SWIFTProcessingSystem:
             messages = self.generate_swift_messages()
             print(f"Generated {len(messages)} SWIFT messages")
 
+            # Convert Pydantic models to dictionaries for agent processing
+            messages = [msg.model_dump() if hasattr(msg, 'model_dump') else msg.dict() for msg in messages]
+
             # TODO 1: Call evaluator optimizer (5 points) - COMPLETED
             # INSTRUCTIONS:
             # Call the process_with_evaluator_optimizer method and store the result

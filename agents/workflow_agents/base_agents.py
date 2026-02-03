@@ -83,7 +83,10 @@ class SwiftCorrectionAgent:
         system_prompt, user_prompt = self.create_prompt(message, errors)
 
         try:
-            client = OpenAI()
+            client = OpenAI(
+                base_url="https://openai.vocareum.com/v1",
+                api_key=self.llm_service.config.OPENAI_API_KEY
+            )
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[

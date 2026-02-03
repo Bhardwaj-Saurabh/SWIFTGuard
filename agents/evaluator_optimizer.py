@@ -201,7 +201,7 @@ class EvaluatorOptimizerPattern:
                 is_valid, errors = self.evaluate_message(message)
 
                 if is_valid:
-                    print(f"  ✓ Message valid after {iteration} iteration(s)")
+                    print(f"  [OK] Message valid after {iteration} iteration(s)")
                     message['validation_status'] = 'VALID'
                     message['validation_errors'] = []
                     break
@@ -216,7 +216,7 @@ class EvaluatorOptimizerPattern:
                         message = self.optimize_message(message, errors)
                     else:
                         # Max iterations reached
-                        print(f"  ✗ Max iterations reached. Message still has errors.")
+                        print(f"  [ERROR] Max iterations reached. Message still has errors.")
                         message['validation_status'] = 'INVALID'
                         message['validation_errors'] = errors
 
