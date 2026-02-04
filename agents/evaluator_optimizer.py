@@ -10,22 +10,57 @@ from agents.workflow_agents.base_agents import SwiftCorrectionAgent
 from config import Config
 
 
-class EvaluatorOptimizerPattern:
+class EvaluatorAgent:
     """
-    Implements the evaluator-optimizer pattern for SWIFT message processing.
+    Evaluator Agent - Responsible for assessing SWIFT message validity.
 
-    This pattern:
-    1. Evaluates messages for compliance with SWIFT standards
-    2. Optimizes (corrects) any identified issues
-    3. Re-evaluates to ensure corrections are valid
-    4. Repeats up to MAX_ITERATIONS times
+    This agent is a distinct, reusable component that can be used independently
+    to validate SWIFT messages against standards. It encapsulates all validation
+    logic and can be easily swapped or extended.
+
+    VALIDATION CAPABILITIES:
+    1. Code-based validation (always active):
+       - BIC format validation
+       - Currency code validation
+       - Amount range validation
+       - Reference length validation
+       - Required field validation
+
+    2. AI-powered semantic validation (optional, requires API credits):
+       - Remittance information coherence analysis
+       - Suspicious pattern detection
+       - Business logic consistency checks
+       - Fraud indicator detection
+
+    Usage:
+        # Basic validation (code-based only)
+        evaluator = EvaluatorAgent()
+        is_valid, errors = evaluator.evaluate(message)
+
+        # With AI-powered semantic checks
+        evaluator = EvaluatorAgent(enable_llm_checks=True)
+        is_valid, errors = evaluator.evaluate(message)
     """
 
-    def __init__(self):
-        """Initialize the evaluator-optimizer pattern."""
+    def __init__(self, enable_llm_checks=False):
+        """
+        Initialize the Evaluator Agent with SWIFT standards.
+
+        Args:
+            enable_llm_checks: If True, enables AI-powered semantic validation
+                              (requires OpenAI API key and credits)
+        """
         self.config = Config()
-        self.MAX_ITERATIONS = 3
-        self.correction_agent = SwiftCorrectionAgent()
+        self.enable_llm_checks = enable_llm_checks
+
+        # Initialize LLM service if semantic checks are enabled
+        if self.enable_llm_checks:
+            try:
+                from services.llm_service import LLMService
+                self.llm_service = LLMService()
+            except Exception as e:
+                print(f"Warning: Could not initialize LLM service: {e}")
+                self.enable_llm_checks = False
 
         # SWIFT validation rules
         self.SWIFT_STANDARDS = {
@@ -40,9 +75,12 @@ class EvaluatorOptimizerPattern:
             "valid_currencies": ["USD", "EUR", "GBP", "JPY", "CHF"]
         }
 
-    def evaluate_message(self, message: Dict) -> Tuple[bool, List[str]]:
+    def evaluate(self, message: Dict) -> Tuple[bool, List[str]]:
         """
         Evaluate a SWIFT message for compliance with standards.
+
+        This is the main interface method for the Evaluator Agent.
+        It assesses message validity and returns detailed error information.
 
         Args:
             message: SWIFT message to evaluate
@@ -101,8 +139,97 @@ class EvaluatorOptimizerPattern:
             except (IndexError, AttributeError):
                 errors.append("Cannot extract currency from amount")
 
+        # Optional: AI-powered semantic validation (if enabled)
+        if self.enable_llm_checks:
+            semantic_errors = self._llm_semantic_check(message)
+            errors.extend(semantic_errors)
+
         is_valid = len(errors) == 0
         return is_valid, errors
+
+    def _llm_semantic_check(self, message: Dict) -> List[str]:
+        """
+        Optional AI-powered semantic validation using LLM.
+
+        This demonstrates the AI capabilities of the evaluator by checking:
+        - Coherence of remittance information
+        - Suspicious patterns in text fields
+        - Business logic consistency
+
+        Args:
+            message: SWIFT message to check
+
+        Returns:
+            List of semantic errors detected by LLM
+        """
+        semantic_errors = []
+
+        try:
+            # Only check MT103 messages with remittance info
+            if message.get('message_type') != 'MT103':
+                return semantic_errors
+
+            remittance = message.get('remittance_info', '')
+            if not remittance or len(remittance) < 5:
+                return semantic_errors
+
+            # Create LLM prompt for semantic validation
+            from openai import OpenAI
+            import json
+
+            client = OpenAI(
+                base_url="https://openai.vocareum.com/v1",
+                api_key=self.config.OPENAI_API_KEY
+            )
+
+            system_prompt = """You are a SWIFT transaction semantic validator.
+Analyze the remittance information for:
+1. Coherence - Does it make sense as a payment description?
+2. Suspicious patterns - Generic/placeholder text, test data, or fraud indicators
+3. Business logic - Does it match the transaction type and amount?
+
+Return JSON with:
+{
+    "is_coherent": true/false,
+    "issues": ["list of specific issues if any"],
+    "risk_level": "low/medium/high"
+}"""
+
+            user_prompt = f"""Analyze this SWIFT MT103 transaction:
+
+Message Type: {message.get('message_type')}
+Amount: {message.get('amount')}
+Remittance Info: "{remittance}"
+Sender BIC: {message.get('sender_bic')}
+Receiver BIC: {message.get('receiver_bic')}
+
+Is the remittance information coherent and appropriate for this transaction?"""
+
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.3
+            )
+
+            result = json.loads(response.choices[0].message.content)
+
+            # Add semantic errors if detected
+            if not result.get('is_coherent', True):
+                for issue in result.get('issues', []):
+                    semantic_errors.append(f"Semantic issue: {issue}")
+
+            if result.get('risk_level') == 'high':
+                semantic_errors.append("High semantic risk detected in remittance info")
+
+        except Exception as e:
+            # Don't fail validation if LLM check fails
+            print(f"LLM semantic check failed (non-critical): {e}")
+
+        return semantic_errors
 
     def _validate_bic(self, bic: str) -> bool:
         """
@@ -145,12 +272,77 @@ class EvaluatorOptimizerPattern:
 
         return True
 
+
+class EvaluatorOptimizerPattern:
+    """
+    Orchestrator for the Evaluator-Optimizer pattern using distinct agents.
+
+    ARCHITECTURE:
+    This pattern implements a true multi-agent architecture with two distinct agents:
+
+    1. EvaluatorAgent - Independent agent that assesses message validity
+       - Can be reused in other parts of the system
+       - Encapsulates all validation logic
+       - Returns (is_valid, errors) tuple
+
+    2. OptimizerAgent (SwiftCorrectionAgent) - Independent agent that corrects errors
+       - Uses LLM to intelligently fix validation issues
+       - Maintains business intent while fixing errors
+       - Returns corrected message
+
+    WORKFLOW:
+    1. Pattern calls EvaluatorAgent.evaluate() to assess message
+    2. If invalid, Pattern calls OptimizerAgent.respond() to correct
+    3. Pattern re-evaluates with EvaluatorAgent.evaluate()
+    4. Repeats up to MAX_ITERATIONS times
+
+    This modular design allows each agent to be:
+    - Tested independently
+    - Swapped with alternative implementations
+    - Reused in other workflows
+    - Extended without affecting the other agent
+    """
+
+    def __init__(self):
+        """
+        Initialize the evaluator-optimizer pattern.
+
+        This pattern orchestrates between two distinct agents:
+        1. EvaluatorAgent - Assesses message validity
+        2. OptimizerAgent (SwiftCorrectionAgent) - Corrects identified issues
+        """
+        self.config = Config()
+        self.MAX_ITERATIONS = 3
+
+        # Initialize the two distinct agents
+        self.evaluator_agent = EvaluatorAgent()
+        self.optimizer_agent = SwiftCorrectionAgent()
+
+        # Store SWIFT standards reference (delegates to evaluator agent)
+        self.SWIFT_STANDARDS = self.evaluator_agent.SWIFT_STANDARDS
+
+    def evaluate_message(self, message: Dict) -> Tuple[bool, List[str]]:
+        """
+        Evaluate a SWIFT message for compliance with standards.
+
+        IMPORTANT: This method delegates to the EvaluatorAgent, implementing
+        the true Evaluator-Optimizer pattern with distinct agents.
+
+        Args:
+            message: SWIFT message to evaluate
+
+        Returns:
+            Tuple of (is_valid, list_of_errors)
+        """
+        # Delegate evaluation to the Evaluator Agent
+        return self.evaluator_agent.evaluate(message)
+
     def optimize_message(self, message: Dict, errors: List[str]) -> Dict:
         """
         Optimize (correct) a SWIFT message based on identified errors.
 
-        NOTE: This method uses the SwiftCorrectionAgent that You implement
-        in base_agents.py (TODOs 7-9).
+        IMPORTANT: This method delegates to the OptimizerAgent (SwiftCorrectionAgent),
+        implementing the true Evaluator-Optimizer pattern with distinct agents.
 
         Args:
             message: SWIFT message to optimize
@@ -163,8 +355,8 @@ class EvaluatorOptimizerPattern:
             return message
 
         try:
-            # Use the correction agent to fix errors
-            corrected = self.correction_agent.respond(message, errors)
+            # Delegate optimization to the Optimizer Agent
+            corrected = self.optimizer_agent.respond(message, errors)
 
             # Ensure all required fields are present in the corrected message
             for field in self.SWIFT_STANDARDS["required_fields"]:

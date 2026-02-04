@@ -1,3 +1,4 @@
+(SWIFTGuard) PS C:\projects\SWIFTGuard> python main.py
 ============================================================
 SWIFT TRANSACTION PROCESSING SYSTEM
 ============================================================
@@ -12,35 +13,34 @@ STEP 1: EVALUATOR-OPTIMIZER PATTERN
 EVALUATOR-OPTIMIZER PATTERN PROCESSING
 ============================================================
 
-Processing message 1/10: c1719cbb-1de8-4fa8-902a-22f5831850bb
+Processing message 1/10: d40980db-7d9c-42bb-86f5-357be9e7094f
   [OK] Message valid after 0 iteration(s)
 
-Processing message 2/10: 5a7faa80-4dd4-4e63-aeb3-5f647d024561
+Processing message 2/10: d4663a1b-d27c-4e4d-8955-ec938979df2a
   [OK] Message valid after 0 iteration(s)
 
-Processing message 3/10: 2ce45853-ef83-4e16-b77d-f0f17f698a42
+Processing message 3/10: 890c5d69-3dec-4fc5-be3f-298ee019d641
   [OK] Message valid after 0 iteration(s)
 
-Processing message 4/10: 1e97c32c-5d31-42cf-89b0-b009faf60eb7
+Processing message 4/10: 42508b31-4212-43d8-af17-05c632a9072c
   [OK] Message valid after 0 iteration(s)
 
-Processing message 5/10: 69b5e5bc-2a1c-4d07-afe1-3f46662a1777
+Processing message 5/10: 18ab14f4-12bd-444a-8822-a3fe2c777a8b
   [OK] Message valid after 0 iteration(s)
 
-Processing message 6/10: cf04e8bb-815f-4299-8357-173d2a6c4d95
+Processing message 6/10: f09a0ab8-19f2-43ed-81cf-fa3c977adc38
   [OK] Message valid after 0 iteration(s)
 
-Processing message 7/10: 8d902c10-ee13-4b1b-8157-026150496b60
+Processing message 7/10: 6f3d4352-748c-4db6-b3ae-3424ecda109b
   [OK] Message valid after 0 iteration(s)
 
-Processing message 8/10: 6021b386-1c30-4f8b-b8be-74ac869586b6
+Processing message 8/10: 5a9b97d9-c2bd-43c0-a1ff-b3d3d3a56696
   [OK] Message valid after 0 iteration(s)
 
-Processing message 9/10: 4411df61-43a2-40c4-9583-cd37d66bc43b
+Processing message 9/10: 30a2ab24-0aac-4c16-87d0-594ae11da10d
   [OK] Message valid after 0 iteration(s)
 
-Processing message 10/10: cfc81f0a-4639-4413-88d1-38d8f0fd6c2e
-  [OK] Message valid after 0 iteration(s)
+Processing message 10/10: 0c58a961-1a93-4be8-932c-ca97055ff71a
 
 ============================================================
 EVALUATOR-OPTIMIZER SUMMARY
@@ -77,86 +77,89 @@ Filtered 10 non-fraudulent messages for processing
 ORCHESTRATOR-WORKER PATTERN PROCESSING
 ============================================================
 Orchestrator analyzing messages...
-Orchestrator Analysis: The batch of SWIFT messages includes a mix of MT103 and MT202 message types. Most transactions are marked as low risk with no anomalies, but several transactions have been flagged for high amounts and unusual decimal precision, requiring further investigation. These transactions have been placed on hold for enhanced due diligence. The majority of transactions are approved with high confidence due to their low risk profiles.
-Tasks created: 6
+Orchestrator Analysis: The batch of SWIFT messages contains a mix of MT202 and MT103 message types. Several transactions have been flagged for potential fraud due to high amounts, unusual decimal precision, invalid BIC codes, and future value dates. These issues have led to some transactions being rejected or placed on hold pending further investigation. The compliance review indicates a high AML risk and potential sanctions risk for certain transactions.
+Tasks created: 9
 
-Executing 6 tasks...
+Executing 9 tasks...
 
-[1/6] Executing task: task_001 - Investigate high amount and unusual decimal precision for transaction 69b5e5bc-2a1c-4d07-afe1-3f46662a1777.
+[1/9] Executing task: task_001 - Investigate high amount and unusual decimal precision for message ID d40980db-7d9c-42bb-86f5-357be9e7094f.
     Status: COMPLETED
 
-[2/6] Executing task: task_002 - Investigate high amount and unusual decimal precision for transaction cf04e8bb-815f-4299-8357-173d2a6c4d95.
+[2/9] Executing task: task_002 - Perform compliance review for message ID d40980db-7d9c-42bb-86f5-357be9e7094f due to high AML risk.
     Status: COMPLETED
 
-[3/6] Executing task: task_003 - Investigate high amount transaction for message 8d902c10-ee13-4b1b-8157-026150496b60.
+[3/9] Executing task: task_003 - Verify the amount and decimal precision for message ID f09a0ab8-19f2-43ed-81cf-fa3c977adc38.
     Status: COMPLETED
 
-[4/6] Executing task: task_004 - Investigate high amount transaction for message 4411df61-43a2-40c4-9583-cd37d66bc43b.
+[4/9] Executing task: task_004 - Perform compliance review for message ID f09a0ab8-19f2-43ed-81cf-fa3c977adc38 due to high AML risk.
     Status: COMPLETED
 
-[5/6] Executing task: task_005 - Investigate high amount and unusual decimal precision for transaction 6021b386-1c30-4f8b-b8be-74ac869586b6.
+[5/9] Executing task: task_005 - Investigate high amount transaction for message ID 5a9b97d9-c2bd-43c0-a1ff-b3d3d3a56696.
     Status: COMPLETED
 
-[6/6] Executing task: task_006 - Create a summary report of all transactions processed, highlighting those on hold and approved.
+[6/9] Executing task: task_006 - Detect unusual patterns for message ID 30a2ab24-0aac-4c16-87d0-594ae11da10d.
+    Status: COMPLETED
+
+[7/9] Executing task: task_007 - Perform compliance review for message ID 30a2ab24-0aac-4c16-87d0-594ae11da10d due to high AML risk.
+    Status: COMPLETED
+
+[8/9] Executing task: task_008 - Create a summary report for all transactions on hold due to technical issues and future value dates.
+    Status: COMPLETED
+
+[9/9] Executing task: task_009 - Verify the amount and decimal precision for message ID 0c58a961-1a93-4be8-932c-ca97055ff71a.
     Status: COMPLETED
 
 ============================================================
 ORCHESTRATOR-WORKER SUMMARY
 ============================================================
 Messages processed: 10
-Tasks created: 6
-Tasks completed: 6
+Tasks created: 9
+Tasks completed: 9
 Tasks failed: 0
 
 ============================================================
 GENERATING REPORT SET 2: HIGH-VALUE TRANSACTIONS
 ============================================================
-Filtered 5 high-value transactions for processing
+Filtered 4 high-value transactions for processing
 ============================================================
 ORCHESTRATOR-WORKER PATTERN PROCESSING
 ============================================================
 Orchestrator analyzing messages...
-Orchestrator Analysis: The batch of SWIFT messages contains five transactions, all of which have been flagged for potential fraud due to high amounts and unusual decimal precision. Each transaction is currently on hold pending further investigation. The fraud confidence levels vary, with MT103 messages having a higher confidence level of 75% compared to MT202 messages at 60%. All transactions are valid but require enhanced due diligence due to the identified risks.
-Tasks created: 10
+Orchestrator Analysis: The batch of SWIFT messages contains four transactions, all of which have been flagged for potential fraud due to high amounts, unusual decimal precision, invalid BIC codes, and future value dates. Each transaction has been rejected with a high fraud confidence level, indicating significant concerns regarding AML and sanctions risks. The transactions require further investigation to ensure compliance and to address any potential fraudulent activities.
+Tasks created: 8
 
-Executing 10 tasks...
+Executing 8 tasks...
 
-[1/10] Executing task: task_1 - Conduct a detailed fraud investigation for message 69b5e5bc-2a1c-4d07-afe1-3f46662a1777 due to high amount and unusual decimal precision.
+[1/8] Executing task: task_001 - Conduct a detailed fraud investigation on transaction d40980db-7d9c-42bb-86f5-357be9e7094f due to high amount and unusual decimal precision.
     Status: COMPLETED
 
-[2/10] Executing task: task_2 - Conduct a detailed fraud investigation for message cf04e8bb-815f-4299-8357-173d2a6c4d95 due to high amount and unusual decimal precision.
+[2/8] Executing task: task_002 - Verify regulatory compliance for transaction d40980db-7d9c-42bb-86f5-357be9e7094f due to high AML risk and potential sanctions risk.
     Status: COMPLETED
 
-[3/10] Executing task: task_3 - Conduct a detailed fraud investigation for message 8d902c10-ee13-4b1b-8157-026150496b60 due to high amount.
+[3/8] Executing task: task_003 - Conduct a detailed fraud investigation on transaction f09a0ab8-19f2-43ed-81cf-fa3c977adc38 due to high amount and unusual decimal precision.
     Status: COMPLETED
 
-[4/10] Executing task: task_4 - Conduct a detailed fraud investigation for message 6021b386-1c30-4f8b-b8be-74ac869586b6 due to high amount and unusual decimal precision.
+[4/8] Executing task: task_004 - Verify regulatory compliance for transaction f09a0ab8-19f2-43ed-81cf-fa3c977adc38 due to high AML risk and potential sanctions risk.
     Status: COMPLETED
 
-[5/10] Executing task: task_5 - Conduct a detailed fraud investigation for message 4411df61-43a2-40c4-9583-cd37d66bc43b due to high amount.
+[5/8] Executing task: task_005 - Conduct a detailed fraud investigation on transaction 5a9b97d9-c2bd-43c0-a1ff-b3d3d3a56696 due to high amount.
     Status: COMPLETED
 
-[6/10] Executing task: task_6 - Verify and analyze the amount for message 69b5e5bc-2a1c-4d07-afe1-3f46662a1777.
+[6/8] Executing task: task_006 - Verify regulatory compliance for transaction 5a9b97d9-c2bd-43c0-a1ff-b3d3d3a56696 due to high AML risk and potential sanctions risk.
     Status: COMPLETED
 
-[7/10] Executing task: task_7 - Verify and analyze the amount for message cf04e8bb-815f-4299-8357-173d2a6c4d95.
+[7/8] Executing task: task_007 - Conduct a detailed fraud investigation on transaction 30a2ab24-0aac-4c16-87d0-594ae11da10d due to high amount.
     Status: COMPLETED
 
-[8/10] Executing task: task_8 - Verify and analyze the amount for message 8d902c10-ee13-4b1b-8157-026150496b60.
-    Status: COMPLETED
-
-[9/10] Executing task: task_9 - Verify and analyze the amount for message 6021b386-1c30-4f8b-b8be-74ac869586b6.
-    Status: COMPLETED
-
-[10/10] Executing task: task_10 - Verify and analyze the amount for message 4411df61-43a2-40c4-9583-cd37d66bc43b.
+[8/8] Executing task: task_008 - Verify regulatory compliance for transaction 30a2ab24-0aac-4c16-87d0-594ae11da10d due to high AML risk and potential sanctions risk.
     Status: COMPLETED
 
 ============================================================
 ORCHESTRATOR-WORKER SUMMARY
 ============================================================
-Messages processed: 5
-Tasks created: 10
-Tasks completed: 10
+Messages processed: 4
+Tasks created: 8
+Tasks completed: 8
 Tasks failed: 0
 
 ============================================================
